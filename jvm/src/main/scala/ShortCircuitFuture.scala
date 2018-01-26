@@ -1,6 +1,5 @@
-import cats.data.{OptionT, XorT}
+import cats.data.OptionT
 import cats.implicits._
-import fs2.interop.cats._
 import fs2.{Strategy, Task}
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._

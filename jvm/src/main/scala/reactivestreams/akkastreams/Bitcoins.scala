@@ -1,23 +1,17 @@
 package reactivestreams.akkastreams
 
-import akka.NotUsed
-import akka.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
+import akka.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest, WebSocketUpgradeResponse}
 import akka.stream.FlowShape
-import akka.stream.scaladsl.{Flow, GraphDSL, Keep, Merge, Sink, Source}
-import io.circe._
+import akka.stream.scaladsl.{Flow, GraphDSL, Keep, Merge, Source}
 import reactivestreams.AkkaHttp._
+import reactivestreams.IPModels._
+import reactivestreams.akkastreams.BitcoinModels.{UnconfirmedTransaction, _}
+
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.io.StdIn
-import Sources._
-import cats.data.Xor
-import java.time.ZonedDateTime
-import reactivestreams.akkastreams.BitcoinModels.UnconfirmedTransaction
-import reactivestreams.IPModels._
-import scala.concurrent.{Future, Promise}
-import BitcoinModels._
-import akka.http.scaladsl.model.ws.WebSocketUpgradeResponse
-import akka.typed.ScalaDSL
-import IPs._
+//import akka.typed.ScalaDSL
+import reactivestreams.akkastreams.IPs._
 
 /**
   * Created by walter
@@ -43,7 +37,7 @@ object Bitcoins extends App {
       .keepAlive(30.seconds, () => TextMessage.Strict("""{"op":"ping"}"""))
       .viaMat(webSocketFlow)(Keep.right)
       .via(Flow[Message].mapAsync(4)(m => getText(m.asInstanceOf[TextMessage])))
-  def unconfirmedTransactionSource(dataFlow: Flow[String, String, Future[WebSocketUpgradeResponse]]): Source[Xor[Throwable, UnconfirmedTransaction], Future[WebSocketUpgradeResponse]] =
+  def unconfirmedTransactionSource(dataFlow: Flow[String, String, Future[WebSocketUpgradeResponse]]): Source[Either[Throwable, UnconfirmedTransaction], Future[WebSocketUpgradeResponse]] =
     Source.single("""{"op":"unconfirmed_sub"}""").viaMat(dataFlow.map(decodeUnconfirmedTransaction))(Keep.right)
   def transactionIPInfoSource: Source[String, _] = (
     WebSocketRequest("wss://ws.blockchain.info/inv") |>

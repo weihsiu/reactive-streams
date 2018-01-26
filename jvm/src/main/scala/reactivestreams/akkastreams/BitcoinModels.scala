@@ -1,6 +1,5 @@
 package reactivestreams.akkastreams
 
-import cats.data.Xor
 import io.circe.generic.auto._
 import io.circe.parser._
 
@@ -35,5 +34,5 @@ object BitcoinModels extends App {
   case class UnconfirmedTransaction(
     op: String,
     x: Transaction)
-  def decodeUnconfirmedTransaction(json: String): Xor[Throwable, UnconfirmedTransaction] = decode[UnconfirmedTransaction](json).leftMap(new Exception(_))
+  def decodeUnconfirmedTransaction(json: String): Either[Throwable, UnconfirmedTransaction] = decode[UnconfirmedTransaction](json).left.map(new Exception(_))
 }

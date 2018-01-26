@@ -12,7 +12,7 @@ object Observables {
     Observable.unsafeCreate { subscriber =>
       val socket = new dom.WebSocket(url)
       socket.onmessage = (e: dom.MessageEvent) => subscriber.onNext(e.data.toString)
-      socket.onerror = (e: dom.ErrorEvent) => subscriber.onError(new Exception(e.message))
+      socket.onerror = (e: dom.Event) => subscriber.onError(new Exception(e.toString))
       socket.onclose = (e: dom.CloseEvent) => subscriber.onComplete()
       Cancelable(() => socket.close(0, "cancel"))
     }

@@ -91,11 +91,6 @@ object Graphs extends AkkaImplicits with App {
       override val inlets: immutable.Seq[Inlet[_]] = jobsIn :: priorityJobsIn :: Nil
       override val outlets: immutable.Seq[Outlet[_]] = resultsOut :: Nil
       override def deepCopy = PriorityWorkerPoolShape(jobsIn.carbonCopy, priorityJobsIn.carbonCopy, resultsOut.carbonCopy)
-      override def copyFromPorts(inlets: immutable.Seq[Inlet[_]], outlets: immutable.Seq[Outlet[_]]) = {
-        assert(inlets.size == this.inlets.size)
-        assert(outlets.size == this.outlets.size)
-        PriorityWorkerPoolShape(inlets(0).as[In], inlets(1).as[In], outlets(0).as[Out])
-      }
     }
     class PriorityWorkerPoolShape2[In, Out](init: Init[Out] = Name("PriorityWorkerPoolShape2")) extends FanInShape[Out](init) {
       protected override def construct(init: Init[Out]) = new PriorityWorkerPoolShape2(init)

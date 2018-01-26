@@ -1,14 +1,13 @@
 package reactivestreams.akkastreams
 
-import akka.actor.PoisonPill
 import akka.stream.OverflowStrategy
-import akka.stream.scaladsl.{Flow, GraphDSL, Sink, Source}
-import akka.typed._
-import akka.typed.adapter._
-import akka.typed.ScalaDSL._
+import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.typed.Behavior
+import akka.typed.scaladsl.Actor
+import akka.typed.scaladsl.adapter._
+
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success, Try}
-
 /**
   * Created by walter
   */
@@ -62,25 +61,27 @@ object Flows {
       trait Message
       case class Toggle(on: Boolean) extends Message
       case object Handover extends Message
-      def toggler(on: Boolean): Behavior[Message] = Full[Message] {
-        case Sig(ctx, PreStart) =>
-          ctx.self ! Handover
-          Same
-        case Msg(ctx, Handover) =>
-          if (on) {
-            sinkQueue.pull.onComplete {
-              case Success(x) => x.fold(sourceQueue.complete) { y =>
-                sourceQueue.offer(y)
-                ctx.self ! Handover
+      def toggler(on: Boolean): Behavior[Message] = Actor.immutable[Message] { (ctx, msg) ⇒
+        msg match {
+          case Handover ⇒ {
+            if (on) {
+              sinkQueue.pull.onComplete {
+                case Success(x) ⇒ x.fold(sourceQueue.complete) { y ⇒
+                  sourceQueue.offer(y)
+                  ctx.self ! Handover
+                }
+                case Failure(e) ⇒ sourceQueue.fail(e)
               }
-              case Failure(e) => sourceQueue.fail(e)
             }
+            Actor.same
           }
-          Same
-        case Msg(ctx, Toggle(on)) =>
-          ctx.self ! Handover
-          toggler(on)
+          case Toggle(on) ⇒ {
+            ctx.self ! Handover
+            toggler(on)
+          }
+        }
       }
+
       // http://stackoverflow.com/questions/31621607/how-do-i-mix-typed-and-untyped-actors
       val t = untypedActorSystem.spawn(toggler(true), "toggler")
       def toggle(on: Boolean) = t ! Toggle(on)
