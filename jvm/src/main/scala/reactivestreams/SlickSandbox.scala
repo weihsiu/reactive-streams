@@ -3,7 +3,7 @@ package reactivestreams.database
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.io.StdIn
-import slick.driver.H2Driver.api._
+import slick.jdbc.H2Profile.api._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object SlickSandbox extends App {

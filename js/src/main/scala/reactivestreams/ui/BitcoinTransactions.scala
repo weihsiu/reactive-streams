@@ -6,13 +6,13 @@ import org.scalajs.dom
 import org.scalajs.dom.html.Element
 import reactivestreams.IPModels._
 import scala.scalajs.js
-import scala.scalajs.js.annotation.JSExport
+import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 import scala.scalajs.js.Dynamic.{global, literal}
 
 /**
   * Created by walter
   */
-@JSExport
+@JSExportTopLevel("reactivestreams.ui.BitcoinTransactions")
 object BitcoinTransactions {
   @JSExport
   def main(mapDiv: Element): Unit = {
