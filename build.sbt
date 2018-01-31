@@ -37,6 +37,7 @@ lazy val reactiveStreams = crossProject.in(file("."))
       "com.typesafe.slick" %% "slick" % "3.2.1",
       "ch.qos.logback" % "logback-classic" % "1.2.3",
       "com.h2database" % "h2" % "1.4.196",
+      "com.beachape" %% "enumeratum-circe" % "1.5.12",
       "org.scalacheck" %% "scalacheck" % "1.13.5" % "test",
       "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "test"
     )
