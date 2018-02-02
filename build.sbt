@@ -18,6 +18,7 @@ lazy val reactiveStreams = crossProject.in(file("."))
   .settings(
     name := "reactive-streams",
     version := "0.0.2-SNAPSHOT",
+    connectInput in run := true,
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core" % "1.0.1",
       "org.typelevel" %%% "cats-mtl-core" % "0.2.1",
