@@ -1,6 +1,5 @@
 package reactivestreams
 
-import cats.data.Xor
 import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.syntax._
@@ -22,6 +21,6 @@ object IPModels {
     org: String,
     as: String,
     query: String)
-  def decodeIPInfo(json: String): Xor[Throwable, IPInfo] = decode[IPInfo](json).leftMap(new Exception(_))
+  def decodeIPInfo(json: String): Either[Throwable, IPInfo] = decode[IPInfo](json).left.map(new Exception(_))
   def encodeIPInfo(ipInfo: IPInfo): String = ipInfo.asJson.noSpaces
 }

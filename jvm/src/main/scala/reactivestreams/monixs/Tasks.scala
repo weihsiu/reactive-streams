@@ -1,7 +1,6 @@
 package reactivestreams.monixs
 
 import cats._
-import monix.cats._
 import monix.eval.Task
 import monix.execution.Scheduler.Implicits.global
 import scala.concurrent.Await

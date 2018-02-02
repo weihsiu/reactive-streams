@@ -3,7 +3,6 @@ package reactivestreams
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes, Uri}
 import akka.http.scaladsl.unmarshalling.{Unmarshal, Unmarshaller}
-import cats.data.Xor
 import io.circe.Decoder
 import io.circe.parser._
 import java.io.StringReader
@@ -14,6 +13,7 @@ import reactivestreams.AkkaHttp._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.util.Try
+import cats.implicits._
 
 /**
   * Created by walter
@@ -35,7 +35,7 @@ object WebServices extends App {
     interval: Int,
     timezoneOffset: Int,
     stockPrices: Vector[StockPrice])
-  def retrieveStockPriceHistory(exchange: String, symbol: String, interval: Int, period: String): Future[Xor[Throwable, StockPriceHistory]] = {
+  def retrieveStockPriceHistory(exchange: String, symbol: String, interval: Int, period: String): Future[Either[Throwable, StockPriceHistory]] = {
     def processPrice(interval: Int, timezoneOffset: Int)(acc: (ZonedDateTime, Vector[StockPrice]), line: String): (ZonedDateTime, Vector[StockPrice]) = acc match {
       case (base, prices) =>
         val ps = line.split(',')
@@ -48,8 +48,8 @@ object WebServices extends App {
           } else (base, base.plusSeconds(ps(0).toInt * interval))
         (newBase, prices :+ StockPrice(exchange, symbol, dateTime, ps(1).toDouble, ps(2).toDouble, ps(3).toDouble, ps(4).toDouble, ps(5).toInt))
     }
-    def toHistory(data: String): Xor[Throwable, StockPriceHistory] = {
-      Xor.fromTry(Try {
+    def toHistory(data: String): Either[Throwable, StockPriceHistory] = {
+      Either.fromTry(Try {
         val decoded = URLDecoder.decode(data, "ascii")
         val (info, history) = decoded.split('\n').splitAt(7)
         val ps = new Properties
@@ -75,10 +75,10 @@ object WebServices extends App {
             "i" -> interval.toString,
             "p" -> period)))) flatMap {
       case HttpResponse(StatusCodes.OK, _, entity, _) =>
-        Unmarshal(entity).to[Xor[Throwable, StockPriceHistory]]
+        Unmarshal(entity).to[Either[Throwable, StockPriceHistory]]
 //        Unmarshal(entity).to[String].map(data => toHistory(data))
       case HttpResponse(status, _, _, _) =>
-        Future.successful(Xor.left(new Exception(s"server returns $status")))
+        Future.successful(Either.left(new Exception(s"server returns $status")))
     }
   }
   case class StockTrade(
@@ -91,8 +91,8 @@ object WebServices extends App {
     change: Double, // c
     changePercentage: Double, // cp
     previousClosedPrice: Double)
-  def retrieveStockTrade(exchange: String, symbol: String): Future[Xor[Throwable, StockTrade]] = {
-    def toTrade(data: String): Xor[Throwable, StockTrade] = {
+  def retrieveStockTrade(exchange: String, symbol: String): Future[Either[Throwable, StockTrade]] = {
+    def toTrade(data: String): Either[Throwable, StockTrade] = {
       implicit val stockTradeDecoder: Decoder[StockTrade] = Decoder.decodeJson emapTry { json =>
         def extractCurrency(price: String): String = price.split('$')(0)
         Try {
@@ -116,9 +116,9 @@ object WebServices extends App {
       uri = Uri("https://www.google.com/finance/info")
         .withQuery(Query("q" -> s"$exchange:$symbol")))) flatMap {
       case HttpResponse(StatusCodes.OK, _, entity, _) =>
-        Unmarshal(entity).to[Xor[Throwable, StockTrade]]
+        Unmarshal(entity).to[Either[Throwable, StockTrade]]
       case HttpResponse(status, _, _, _) =>
-        Future.successful(Xor.left(new Exception(s"server teturn $status")))
+        Future.successful(Either.left(new Exception(s"server teturn $status")))
     }
   }
   val h = retrieveStockTrade("TPE", "2330")

@@ -20,8 +20,8 @@ object Examples extends App with AkkaImplicits {
     .bufferSliding(2, 2)
     .take(10000)
     .map { case Seq(x, y) => if (x * x + y * y < 1.0) 1 else 0 }
-    .runWith(Consumer.foldLeft((0, 0)) { case ((in, total), x) => (in + x, total + 1) })
-    .runAsync(_.get match { case (in, total) => println(s"pi = ${4.0 * in / total}") })
+    .consumeWith(Consumer.foldLeft((0, 0)) { case ((in, total), x) => (in + x, total + 1) })
+    .runOnComplete(_.get match { case (in, total) => println(s"pi = ${4.0 * in / total}") })
   def example1 = Observable
     .zip2(
       Observable.intervalAtFixedRate(1.second),
@@ -35,13 +35,13 @@ object Examples extends App with AkkaImplicits {
   def example2 = Observables
     .stockPrices("TPE", "2330", 86400, "11d")
     .map(_.toString + "\n")
-    .runWith(Consumers.writeFile(Paths.get("data/tsmc")))
+    .consumeWith(Consumers.writeFile(Paths.get("data/tsmc")))
     .runAsync
   def example3 = Observable
     .fromReactivePublisher(Sources.fromInt(0).runWith(Sink.asPublisher(false)))
     .filter(_ % 2 == 0)
     .take(10)
-    .runWith(Consumer.foreach(println))
+    .consumeWith(Consumer.foreach(println))
     .runAsync
   def example4 = Observable
     .fromIterable(1 to 10)
