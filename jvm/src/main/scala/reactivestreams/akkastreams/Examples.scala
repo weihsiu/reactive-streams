@@ -84,7 +84,7 @@ object Examples extends App with AkkaImplicits {
     }).run
   }
 
-  example2
+  example0
   StdIn.readLine
   AkkaHttp.system.terminate
   system.terminate
